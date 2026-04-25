@@ -1,0 +1,33 @@
+:root {
+  --bg: #080705;
+  --panel: rgba(14, 12, 9, 0.92);
+  --panel-soft: rgba(28, 22, 15, 0.72);
+
+  --gold: #c8a45d;
+  --gold-light: #f0d28a;
+  --gold-dark: #6f5125;
+
+  --red: #6e1f1f;
+  --green: #2f6b35;
+  --blue: #243d63;
+
+  --text: #eadfc7;
+  --muted: #9f9279;
+
+  --border: rgba(200, 164, 93, 0.45);
+  --shadow-gold: 0 0 24px rgba(200, 164, 93, 0.18);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --font-title: 'Cinzel', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, rgba(120, 87, 35, 0.16), transparent 35%), var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}

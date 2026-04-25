@@ -1,64 +1,112 @@
 import { create } from 'zustand';
+import { ACTIONS } from '../data/characters';
 
-export const useGameStore = create((set) => ({
-  mode: null, // 'normal' | 'realistic'
-  selectedPolitician: null,
-  currentTurn: 1,
-  maxTurns: 60, // 5 years = 60 months
-  
-  // Gauges (0-100)
-  popularity: 50,
-  budget: 50,
+const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
+const fmt = (value = 0) => `${value >= 0 ? '+' : ''}${value}`;
+const randomDelta = (range = 0) => (range <= 0 ? 0 : Math.round((Math.random() * 2 - 1) * range));
+
+const applyEffect = (state, effect) => {
+  const next = { ...state };
+  ['trust', 'order', 'budget', 'momentum'].forEach((key) => {
+    if (effect[key]) {
+      next[key] = clamp(next[key] + effect[key]);
+    }
+  });
+  return next;
+};
+
+const computeStatus = ({ turn, maxTurns, trust, order, budget, momentum }) => {
+  if (turn > maxTurns) return { over: true, victory: true, reason: 'Mandat terminé. Victoire stratégique.' };
+  if (trust <= 0) return { over: true, victory: false, reason: 'Perte totale de confiance populaire.' };
+  if (order <= 0) return { over: true, victory: false, reason: 'Désordre national incontrôlable.' };
+  if (budget <= 0) return { over: true, victory: false, reason: 'Faillite politique et économique.' };
+  if (momentum <= 0) return { over: true, victory: false, reason: 'Campagne éteinte, plus aucun levier.' };
+  return { over: false, victory: false, reason: '' };
+};
+
+const initialState = {
+  phase: 'menu',
+  selectedCharacter: null,
+  turn: 1,
+  maxTurns: 24,
+  trust: 50,
   order: 50,
-  support: 50,
-  
-  government: [], // list of appointed ministers
-  eventLog: [],
-  ultimateCooldown: 0,
-  
-  setMode: (mode) => set({ mode }),
-  selectPolitician: (politician) => set({ selectedPolitician: politician }),
-  
-  // Game Actions
-  nextTurn: () => set((state) => ({ 
-    currentTurn: state.currentTurn + 1,
-    ultimateCooldown: Math.max(0, state.ultimateCooldown - 1)
-  })),
-  updateGauge: (gauge, amount) => set((state) => ({
-    [gauge]: Math.max(0, Math.min(100, state[gauge] + amount))
-  })),
-  
-  addEventLog: (message) => set((state) => ({
-    eventLog: [{ turn: state.currentTurn, message }, ...state.eventLog]
-  })),
+  budget: 50,
+  momentum: 50,
+  specialCharge: 0,
+  logs: [],
+  gameOver: false,
+  victory: false,
+  endReason: '',
+};
 
-  useSkill: (skill) => set((state) => {
-    // Basic implementation: logs the skill use
-    return {
-      eventLog: [{ turn: state.currentTurn, message: `A utilisé la compétence : ${skill.name}` }, ...state.eventLog],
-      popularity: Math.min(100, state.popularity + 2) // Example slight bump
-    };
-  }),
+export const useGameStore = create((set, get) => ({
+  ...initialState,
 
-  useUltimate: (ultimate) => set((state) => {
-    if (state.ultimateCooldown > 0) return state; // Prevent if on cooldown
-    return {
-      ultimateCooldown: 12, // 12 turns cooldown
-      eventLog: [{ turn: state.currentTurn, message: `🔥 CAPACITÉ ULTIME DÉCLENCHÉE : ${ultimate.name} 🔥` }, ...state.eventLog],
-      order: Math.max(0, state.order - 20) // Dramatic effect
+  startRun: (character) => {
+    set({
+      ...initialState,
+      phase: 'game',
+      selectedCharacter: character,
+      trust: character.stats.trust,
+      order: character.stats.order,
+      budget: character.stats.budget,
+      momentum: character.stats.momentum,
+      logs: [{ turn: 1, text: `${character.name} entre dans l'arène sombre.` }],
+    });
+  },
+
+  backToMenu: () => set({ ...initialState }),
+
+  playAction: (actionKey) => {
+    const state = get();
+    if (state.gameOver || state.phase !== 'game') return;
+
+    const action = ACTIONS.find((item) => item.key === actionKey);
+    if (!action) return;
+
+    const bonus = state.selectedCharacter.archetype.actionBonus[actionKey] ?? {};
+    const effect = { ...action.effect };
+
+    Object.entries(action.variance ?? {}).forEach(([stat, range]) => {
+      effect[stat] = (effect[stat] ?? 0) + randomDelta(range);
+    });
+
+    Object.entries(bonus).forEach(([stat, value]) => {
+      effect[stat] = (effect[stat] ?? 0) + value;
+    });
+
+    const afterAction = applyEffect(state, effect);
+    const afterTurn = {
+      ...afterAction,
+      turn: state.turn + 1,
+      specialCharge: Math.min(100, state.specialCharge + 25),
+      logs: [
+        {
+          turn: state.turn,
+          text: `${action.label}: T${fmt(effect.trust ?? 0)}, O${fmt(effect.order ?? 0)}, B${fmt(effect.budget ?? 0)}, M${fmt(effect.momentum ?? 0)}`,
+        },
+        ...state.logs,
+      ].slice(0, 8),
     };
-  }),
-  
-  resetGame: () => set({
-    mode: null,
-    selectedPolitician: null,
-    currentTurn: 1,
-    popularity: 50,
-    budget: 50,
-    order: 50,
-    support: 50,
-    government: [],
-    eventLog: [],
-    ultimateCooldown: 0
-  })
+
+    const status = computeStatus(afterTurn);
+    set({ ...afterTurn, gameOver: status.over, victory: status.victory, endReason: status.reason });
+  },
+
+  useSpecial: () => {
+    const state = get();
+    if (state.gameOver || state.specialCharge < 100 || state.phase !== 'game') return;
+
+    const special = state.selectedCharacter.archetype.special;
+    const applied = applyEffect(state, special.effect);
+    const afterSpecial = {
+      ...applied,
+      specialCharge: 0,
+      logs: [{ turn: state.turn, text: `ULTIME — ${special.name}: ${special.text}` }, ...state.logs].slice(0, 8),
+    };
+
+    const status = computeStatus(afterSpecial);
+    set({ ...afterSpecial, gameOver: status.over, victory: status.victory, endReason: status.reason });
+  },
 }));

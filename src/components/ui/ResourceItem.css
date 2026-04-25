@@ -1,0 +1,17 @@
+.resource-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(200, 164, 93, 0.18);
+  color: var(--text);
+}
+
+.resource-icon {
+  color: var(--gold);
+}
+
+.resource-item strong {
+  color: var(--gold-light);
+}
