@@ -1,4 +1,4 @@
-import { ACTIONS } from '../data/characters';
+import { ACTIONS_STRATEGIC } from '../data/actionsStrategic';
 import { useGameStore } from '../store/useGameStore';
 import { Button } from './ui/Button';
 import { CharacterCard } from './ui/CharacterCard';
@@ -12,6 +12,12 @@ const toCardStats = (trust, order, budget, momentum) => [
   { icon: '◈', label: 'Budget', value: budget },
   { icon: '⚡', label: 'Momentum', value: momentum },
 ];
+
+const toRange = (value) => {
+  const min = Math.max(0, value - 10);
+  const max = Math.min(100, value + 10);
+  return `${min}-${max}`;
+};
 
 export default function GameBoard() {
   const {
@@ -27,9 +33,12 @@ export default function GameBoard() {
     gameOver,
     victory,
     endReason,
+    regionalIntel,
+    maintainFullVision,
     playAction,
     useSpecial: triggerSpecial,
     backToMenu,
+    toggleNationalVision,
   } = useGameStore();
 
   return (
@@ -56,7 +65,7 @@ export default function GameBoard() {
 
         <Panel title="Compétences d’action">
           <div className="skills-stack">
-            {ACTIONS.map((action, index) => (
+            {ACTIONS_STRATEGIC.map((action, index) => (
               <SkillCard
                 key={action.key}
                 image={selectedCharacter.portrait}
@@ -75,6 +84,41 @@ export default function GameBoard() {
             <ResourceItem icon="🛡" label="Ordre" value={`${order}%`} />
             <ResourceItem icon="◈" label="Budget" value={`${budget}%`} />
             <ResourceItem icon="⚡" label="Momentum" value={`${momentum}%`} />
+            <Button variant={maintainFullVision ? 'danger' : 'success'} onClick={toggleNationalVision} className="full-width">
+              {maintainFullVision ? 'Couper vision nationale' : 'Maintenir vision nationale'}
+            </Button>
+            <p className="intel-cost-note">Coût d’opportunité: -3 budget et -2 momentum par tour/action.</p>
+          </Panel>
+
+          <Panel title="Carte renseignement">
+            <div className="intel-map-list">
+              {regionalIntel.map((region) => {
+                const isStrongIntel = region.intel.confidence >= 70;
+                const trustLabel = isStrongIntel
+                  ? `${region.intel.knownStats.trust ?? region.actualStats.trust}%`
+                  : `${toRange(region.actualStats.trust)}%`;
+                const orderLabel = isStrongIntel
+                  ? `${region.intel.knownStats.order ?? region.actualStats.order}%`
+                  : `${toRange(region.actualStats.order)}%`;
+
+                return (
+                  <div className="intel-region-card" key={region.id}>
+                    <h4>{region.name}</h4>
+                    <p>Confiance: {trustLabel}</p>
+                    <p>Ordre: {orderLabel}</p>
+                    <p>Fiabilité: {region.intel.confidence}% · MAJ T{region.intel.lastUpdatedTurn || '—'}</p>
+                    <ul>
+                      {region.events.length === 0 && <li>Aucun signal notable.</li>}
+                      {region.events.map((event) => (
+                        <li key={event.id}>
+                          {event.discoveredTurn ? `${event.text} (découvert T${event.discoveredTurn})` : 'Événement masqué — renseignement insuffisant'}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
           </Panel>
 
           <Panel title="Journal">

@@ -99,34 +99,3 @@ export const characters = PHOTO_FILES.map((file, index) => {
     },
   };
 });
-
-export const ACTIONS = [
-  {
-    key: 'media',
-    label: 'Offensive Média',
-    description: 'Boost momentum + trust, risque de backlash.',
-    effect: { momentum: 8, trust: 4, budget: -2, order: -1 },
-    variance: { trust: 4, momentum: 5, order: 2 },
-  },
-  {
-    key: 'reform',
-    label: 'Réforme Brutale',
-    description: 'Budget + ordre, coût politique.',
-    effect: { budget: 9, order: 5, trust: -6, momentum: -2 },
-    variance: { budget: 5, trust: 4 },
-  },
-  {
-    key: 'social',
-    label: 'Mesure Sociale',
-    description: 'Confiance + ordre social, budget tendu.',
-    effect: { trust: 8, order: 3, budget: -7, momentum: 2 },
-    variance: { trust: 3, budget: 4 },
-  },
-  {
-    key: 'control',
-    label: 'Action Sécuritaire',
-    description: 'Ordre immédiat, confiance en baisse.',
-    effect: { order: 10, trust: -7, budget: -3, momentum: 1 },
-    variance: { order: 4, trust: 3 },
-  },
-];
