@@ -1,9 +1,10 @@
 import { ACTIONS } from '../data/characters';
-import { useGameStore } from '../store/useGameStore';
+import { GOVERNMENT_PRIORITIES, MAP_FILTERS, useGameStore } from '../store/useGameStore';
+import NationalHUD from './hud/NationalHUD';
+import RegionInspector from './hud/RegionInspector';
 import { Button } from './ui/Button';
 import { CharacterCard } from './ui/CharacterCard';
 import { Panel } from './ui/Panel';
-import { ResourceItem } from './ui/ResourceItem';
 import { SkillCard } from './ui/SkillCard';
 
 const toCardStats = (trust, order, budget, momentum) => [
@@ -22,6 +23,15 @@ export default function GameBoard() {
     order,
     budget,
     momentum,
+    energy,
+    cohesion,
+    publicOrder,
+    externalInfluence,
+    alerts,
+    regions,
+    activeMapFilter,
+    selectedRegionId,
+    governmentPriorities,
     specialCharge,
     logs,
     gameOver,
@@ -29,8 +39,14 @@ export default function GameBoard() {
     endReason,
     playAction,
     useSpecial: triggerSpecial,
+    setActiveMapFilter,
+    selectRegion,
+    toggleGovernmentPriority,
     backToMenu,
   } = useGameStore();
+
+  const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? null;
+  const filterStat = MAP_FILTERS[activeMapFilter].stat;
 
   return (
     <main className="screen-root" style={{ backgroundImage: `url('${selectedCharacter.portrait}')` }}>
@@ -54,28 +70,80 @@ export default function GameBoard() {
           </Button>
         </CharacterCard>
 
-        <Panel title="Compétences d’action">
-          <div className="skills-stack">
-            {ACTIONS.map((action, index) => (
-              <SkillCard
-                key={action.key}
-                image={selectedCharacter.portrait}
-                title={`[${index + 1}] ${action.label}`}
-                description={action.description}
-                onClick={() => playAction(action.key)}
-                disabled={gameOver}
-              />
-            ))}
-          </div>
-        </Panel>
+        <div className="center-column">
+          <Panel title="Carte stratégique">
+            <div className="map-filter-row">
+              {Object.entries(MAP_FILTERS).map(([key, filter]) => (
+                <button
+                  key={key}
+                  className={`map-filter-chip ${activeMapFilter === key ? 'active' : ''}`}
+                  onClick={() => setActiveMapFilter(key)}
+                  type="button"
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="region-map-grid">
+              {regions.map((region) => (
+                <button
+                  key={region.id}
+                  className={`region-tile ${selectedRegionId === region.id ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => selectRegion(region.id)}
+                >
+                  <h4>{region.name}</h4>
+                  <p>{MAP_FILTERS[activeMapFilter].label}</p>
+                  <strong>{region[filterStat]}%</strong>
+                </button>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel title={`Priorités gouvernementales (${governmentPriorities.length}/3)`}>
+            <div className="priorities-grid">
+              {GOVERNMENT_PRIORITIES.map((priority) => {
+                const active = governmentPriorities.includes(priority.key);
+                return (
+                  <button
+                    key={priority.key}
+                    type="button"
+                    className={`priority-card ${active ? 'active' : ''}`}
+                    onClick={() => toggleGovernmentPriority(priority.key)}
+                    disabled={!active && governmentPriorities.length >= 3}
+                  >
+                    <strong>{priority.label}</strong>
+                    <p>{priority.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </Panel>
+
+          <Panel title="Compétences d’action">
+            <div className="skills-stack">
+              {ACTIONS.map((action, index) => (
+                <SkillCard
+                  key={action.key}
+                  image={selectedCharacter.portrait}
+                  title={`[${index + 1}] ${action.label}`}
+                  description={action.description}
+                  onClick={() => playAction(action.key)}
+                  disabled={gameOver}
+                />
+              ))}
+            </div>
+          </Panel>
+        </div>
 
         <div className="right-column">
-          <Panel title="Ressources nationales">
-            <ResourceItem icon="♛" label="Confiance" value={`${trust}%`} />
-            <ResourceItem icon="🛡" label="Ordre" value={`${order}%`} />
-            <ResourceItem icon="◈" label="Budget" value={`${budget}%`} />
-            <ResourceItem icon="⚡" label="Momentum" value={`${momentum}%`} />
-          </Panel>
+          <NationalHUD
+            stats={{ budget, energy, cohesion, publicOrder, externalInfluence }}
+            alerts={alerts}
+          />
+
+          <RegionInspector region={selectedRegion} />
 
           <Panel title="Journal">
             <div className="log-list">
