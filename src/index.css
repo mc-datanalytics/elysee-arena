@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #141414;
+  --bg-glass: rgba(5, 5, 5, 0.85);
+  
+  --text-primary: #e6dfd1;
+  --text-secondary: #a09c95;
+  --text-muted: #6b665c;
+  
+  --accent-gold: #d4af37;
+  --accent-gold-dark: #b89128;
+  --accent-gold-light: #f0d38d;
+  --accent-red: #8b0000;
+  
+  --border-color: rgba(212, 175, 55, 0.3);
+  --border-color-glow: rgba(212, 175, 55, 0.6);
+  
+  --font-serif: 'EB Garamond', serif;
+  --font-title: 'Cinzel', serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-serif);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  color: var(--accent-gold);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.rpg-button {
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--accent-gold);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-title);
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.rpg-button:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.rpg-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skill-card {
+  border: 1px solid var(--border-color);
+  background: rgba(10, 10, 10, 0.8);
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.skill-card:hover {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2) inset;
+}
+
+.skill-card h4 {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.2rem;
+  color: var(--text-primary);
+}
+
+.skill-card p {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.skill-icon {
+  width: 60px;
+  height: 60px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="%23d4af37" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>') center/cover;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
