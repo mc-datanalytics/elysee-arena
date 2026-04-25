@@ -124,3 +124,44 @@
     min-height: auto;
   }
 }
+
+.intel-cost-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.intel-map-list {
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.intel-region-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+.intel-region-card h4 {
+  margin: 0 0 6px;
+}
+
+.intel-region-card p {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.intel-region-card ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.intel-region-card li {
+  color: var(--text);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
