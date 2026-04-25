@@ -5,6 +5,7 @@ import { CharacterCard } from './ui/CharacterCard';
 import { Panel } from './ui/Panel';
 import { ResourceItem } from './ui/ResourceItem';
 import { SkillCard } from './ui/SkillCard';
+import FranceMapScene from './map/FranceMapScene';
 
 const toCardStats = (trust, order, budget, momentum) => [
   { icon: '♛', label: 'Confiance', value: trust },
@@ -54,20 +55,26 @@ export default function GameBoard() {
           </Button>
         </CharacterCard>
 
-        <Panel title="Compétences d’action">
-          <div className="skills-stack">
-            {ACTIONS.map((action, index) => (
-              <SkillCard
-                key={action.key}
-                image={selectedCharacter.portrait}
-                title={`[${index + 1}] ${action.label}`}
-                description={action.description}
-                onClick={() => playAction(action.key)}
-                disabled={gameOver}
-              />
-            ))}
-          </div>
-        </Panel>
+        <div className="center-column">
+          <Panel title="Carte opérationnelle">
+            <FranceMapScene />
+          </Panel>
+
+          <Panel title="Compétences d’action">
+            <div className="skills-stack">
+              {ACTIONS.map((action, index) => (
+                <SkillCard
+                  key={action.key}
+                  image={selectedCharacter.portrait}
+                  title={`[${index + 1}] ${action.label}`}
+                  description={action.description}
+                  onClick={() => playAction(action.key)}
+                  disabled={gameOver}
+                />
+              ))}
+            </div>
+          </Panel>
+        </div>
 
         <div className="right-column">
           <Panel title="Ressources nationales">
