@@ -1,23 +1,9 @@
-import React from 'react';
-import { useGameStore } from './store/useGameStore';
 import MainMenu from './components/MainMenu';
 import GameBoard from './components/GameBoard';
-import { AnimatePresence } from 'framer-motion';
+import { useGameStore } from './store/useGameStore';
 
-function App() {
-  const selectedPolitician = useGameStore(state => state.selectedPolitician);
+export default function App() {
+  const phase = useGameStore((state) => state.phase);
 
-  return (
-    <div className="App">
-      <AnimatePresence mode="wait">
-        {!selectedPolitician ? (
-          <MainMenu key="main-menu" />
-        ) : (
-          <GameBoard key="game-board" />
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  return phase === 'game' ? <GameBoard /> : <MainMenu />;
 }
-
-export default App;
