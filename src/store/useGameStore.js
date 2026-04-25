@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { ACTIONS } from '../data/characters';
+import { resolveVictoryPath } from '../data/victoryConditions';
+import { crisisDirector } from '../systems/crisisDirector';
 
 const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
 const fmt = (value = 0) => `${value >= 0 ? '+' : ''}${value}`;
@@ -15,12 +17,19 @@ const applyEffect = (state, effect) => {
   return next;
 };
 
-const computeStatus = ({ turn, maxTurns, trust, order, budget, momentum }) => {
-  if (turn > maxTurns) return { over: true, victory: true, reason: 'Mandat terminé. Victoire stratégique.' };
+const computeStatus = (state) => {
+  const { turn, maxTurns, trust, order, budget, momentum } = state;
   if (trust <= 0) return { over: true, victory: false, reason: 'Perte totale de confiance populaire.' };
   if (order <= 0) return { over: true, victory: false, reason: 'Désordre national incontrôlable.' };
   if (budget <= 0) return { over: true, victory: false, reason: 'Faillite politique et économique.' };
   if (momentum <= 0) return { over: true, victory: false, reason: 'Campagne éteinte, plus aucun levier.' };
+
+  const victoryPath = resolveVictoryPath(state);
+  if (victoryPath) {
+    return { over: true, victory: true, reason: `Victoire par ${victoryPath.label}.` };
+  }
+
+  if (turn > maxTurns) return { over: true, victory: true, reason: 'Mandat terminé. Victoire stratégique.' };
   return { over: false, victory: false, reason: '' };
 };
 
@@ -77,14 +86,21 @@ export const useGameStore = create((set, get) => ({
     });
 
     const afterAction = applyEffect(state, effect);
+    const crisis = crisisDirector(afterAction);
+    const afterCrisis = applyEffect(afterAction, crisis.effect);
+
     const afterTurn = {
-      ...afterAction,
+      ...afterCrisis,
       turn: state.turn + 1,
       specialCharge: Math.min(100, state.specialCharge + 25),
       logs: [
         {
           turn: state.turn,
           text: `${action.label}: T${fmt(effect.trust ?? 0)}, O${fmt(effect.order ?? 0)}, B${fmt(effect.budget ?? 0)}, M${fmt(effect.momentum ?? 0)}`,
+        },
+        {
+          turn: state.turn,
+          text: `Directeur de crise (${crisis.era.title}) — Pression ${crisis.intensity.pressure} / Opportunité ${crisis.intensity.opportunity} => T${fmt(crisis.effect.trust)}, O${fmt(crisis.effect.order)}, B${fmt(crisis.effect.budget)}, M${fmt(crisis.effect.momentum)}`,
         },
         ...state.logs,
       ].slice(0, 8),
