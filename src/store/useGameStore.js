@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ACTIONS } from '../data/characters';
+import { ACTIONS } from '../data/characters.js';
 
 const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
 const fmt = (value = 0) => `${value >= 0 ? '+' : ''}${value}`;
@@ -15,8 +15,8 @@ const applyEffect = (state, effect) => {
   return next;
 };
 
-const computeStatus = ({ turn, maxTurns, trust, order, budget, momentum }) => {
-  if (turn > maxTurns) return { over: true, victory: true, reason: 'Mandat terminé. Victoire stratégique.' };
+export const computeStatus = ({ turn, maxTurns, trust, order, budget, momentum }) => {
+  if (turn >= maxTurns) return { over: true, victory: true, reason: 'Mandat terminé. Victoire stratégique.' };
   if (trust <= 0) return { over: true, victory: false, reason: 'Perte totale de confiance populaire.' };
   if (order <= 0) return { over: true, victory: false, reason: 'Désordre national incontrôlable.' };
   if (budget <= 0) return { over: true, victory: false, reason: 'Faillite politique et économique.' };
